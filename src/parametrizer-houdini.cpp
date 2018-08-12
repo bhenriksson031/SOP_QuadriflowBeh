@@ -29,11 +29,8 @@ int Parametrizer::HouMeshLoader(GU_Detail *gdp, UT_BoundingBox &bbox)
 		std::cout << "scale is zero!";
 		return(14);
 	}
-
 	this->normalize_scale = scale;    
 	this->normalize_offset = Vector3d(bbox.centerX(), bbox.centerY(), bbox.centerZ());
-	//std::cout << "scale: "<< this->normalize_scale << "\n";
-	//std::cout << "offset: "<< this->normalize_offset<<"\n";
 	GA_RWHandleV3 Phandle(gdp->findAttribute(GA_ATTRIB_POINT, "P"));
 	GA_Offset ptoff;
 	GEO_Primitive *prim;
@@ -49,7 +46,7 @@ int Parametrizer::HouMeshLoader(GU_Detail *gdp, UT_BoundingBox &bbox)
 	//std::cout<<"matrix V size: "<< V.size() << "\n";
 	//std::cout << "matrix F size: " << F.size() <<"\n";
 	GA_FOR_ALL_PTOFF(gdp, ptoff) {
-		UT_Vector3 Pvalue = Phandle.get(ptoff);
+		UT_Vector3 Pvalue = (Phandle.get(ptoff) - bbox.center() ) / scale ;
 		V(0, i) = Pvalue.x();
 		V(1, i) = Pvalue.y();
 		V(2, i) = Pvalue.z();
@@ -68,18 +65,7 @@ int Parametrizer::HouMeshLoader(GU_Detail *gdp, UT_BoundingBox &bbox)
 		F(1, j) = gdp->vertexPoint(prim_vrts(1));
 		F(2, j) = gdp->vertexPoint(prim_vrts(2));
 		j++;
-
-		//store prims and positions
-		//V.col(i) = Pvalue
-		//F.resize(3, indices.size() / 3); // TODO to hdk
 	}
-	//std::cout << "F:\n" << F << "\n";
-	//std::cout << "V:\n" << V << "\n";
-	//std::cout << "npts: " << i << " nprims, "<< j << "\n";
-	//std::cout << "matrix V last elements: " << V(0, i-1) << ", " << V(1, i - 1) << ", " << V(2, i - 1) << "\n";
-	//std::cout << "matrix F last elements: " << F(0, i - 1) << ", " <<F(1, i - 1) << ", " << F(2, i - 1) << "\n";
-	//std::cout << "\n";
-
 	return(0);
 }
 
@@ -127,8 +113,9 @@ void Parametrizer::HouMeshDumper(GU_Detail *gdp) {
 	//	poly->close();
 	//}
 
-	gdp->getAttributes().bumpAllDataIds(GA_ATTRIB_PRIMITIVE);
-	gdp->getPrimitiveList().bumpDataId();
+	//gdp->getAttributes().bumpAllDataIds(GA_ATTRIB_PRIMITIVE);  //UNCOMMENTED AS NODE IS SET TO NOT MANAGE ITS DATA IDS
+	//gdp->getPrimitiveList().bumpDataId();
+
 
 	//std::ofstream os(obj_name);
 	//for (int i = 0; i < O_compact.size(); ++i) {
